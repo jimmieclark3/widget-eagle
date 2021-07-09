@@ -582,7 +582,7 @@ onAddGcode : function(addGcodeCallback, gcodeParts, eagleWidget, helpDesc){
             holes: []
         },
         regHoleGcodePara: {
-            depth: -1.7,
+            depth: -2,
             clearance: 2,
             feedrate: 200,
             spindleRPM: 1200
@@ -2477,8 +2477,8 @@ onAddGcode : function(addGcodeCallback, gcodeParts, eagleWidget, helpDesc){
         feedRateDimensions: 100,
         drillFeedrate: 100.0, // mm/min
         drillMaxDiameter: 2.00, //mm/min //V5.2D20170105 changed to 2.00 to match default value on widget.html
-        drillDepth: -1.7, // std thickness
-        depthOfDimensions: -1.7, // std thickness
+        drillDepth: -2, // std thickness
+        depthOfDimensions: -2, // std thickness
         millDiameter: 1,
         millDiameterMin: 1,
         useDimensionLayer: false,
@@ -8747,7 +8747,7 @@ EagleCanvas.prototype.mirrorLayer = function (layerIdx) {
                             
                             Depth for Drilling
                             <div class="input-group" style="margin-bottom: 10px;">
-                                <input class="form-control reg-holes-depth" type="number" placeholder="Depth" value="-1.7" min="-20" max="-0.1" step="0.1"/>
+                                <input class="form-control reg-holes-depth" type="number" placeholder="Depth" value="-2" min="-20" max="-0.1" step="0.1"/>
                                 <div class="input-group-addon">mm</div>
                             </div>
                             
@@ -8780,7 +8780,7 @@ EagleCanvas.prototype.mirrorLayer = function (layerIdx) {
                             <div class="form-group">
                                 Inflate Milling Path By
                                 <div class="input-group">
-                                    <input class="form-control inflate-by" type="number" placeholder="" value="0.35" />
+                                    <input class="form-control inflate-by" type="number" placeholder="" value="0.12" />
                                     <div class="input-group-addon">mm</div>
                                 </div>
                                 <!-- <button type="button" class="btn btn-xs btn-eagle-advanced" >Advanced</button> -->
@@ -8923,7 +8923,7 @@ EagleCanvas.prototype.mirrorLayer = function (layerIdx) {
                             </div>
                             Depth of Milling Traces
                             <div class="input-group">
-                                <input class="form-control trace-depth" type="number" placeholder="Depth" value="-0.1" />
+                                <input class="form-control trace-depth" type="number" placeholder="Depth" value="-0.03" />
                                 <div class="input-group-addon">mm</div>
                             </div>
                             <p class="descriptive-text">If you use ChiliPeppr's Auto-Level, you should be able to achieve copper removal with -0.1mm depth on 2oz copper. Or refer to the following depths:
@@ -9096,7 +9096,7 @@ EagleCanvas.prototype.mirrorLayer = function (layerIdx) {
                             
                             Depth of Cutting Out Dimensions (Board Depth)
                             <div class="input-group">
-                                <input class="form-control dimension-depth" type="number" placeholder="Size" value="-1.7" max="0" step="0.1" />
+                                <input class="form-control dimension-depth" type="number" placeholder="Size" value="-1.9" max="0" step="0.1" />
                                 <div class="input-group-addon">mm</div>
                             </div>
                             <p class="descriptive-text">Typical FR4 thickness is 1.7mm.
@@ -9566,3 +9566,17 @@ EagleCanvas.prototype.mirrorLayer = function (layerIdx) {
 </body>
 
 </html>
+
+
+
+<script type="text/javascript">
+$(document).ready(function() {
+	//console.log("testing");
+	var millRad = $("input[name=com-chilipeppr-widget-eagle-soldermask-mode][value=mill]");
+	millRad.prop("checked", true);
+	millRad.change();
+	millRad.click();
+	//console.log("testing done");
+	//alert("here");
+});
+</script>

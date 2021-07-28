@@ -1399,6 +1399,7 @@ onAddGcode : function(addGcodeCallback, gcodeParts, eagleWidget, helpDesc){
             }
             g += "(Width of cut: " + w + ")\n";
             g += "G21 (mm)\n";
+            g += "G90 (abs mode)\n";
             g += "M9 (make sure coolant is off)\n";
             
             if (options.mode == "mill") {
@@ -1563,6 +1564,7 @@ onAddGcode : function(addGcodeCallback, gcodeParts, eagleWidget, helpDesc){
                 // turn off spindle
                 g += "M5 (spindle off)\n";
             }
+			
             g += "(Done)\n";
             
             console.log("generated gcode. length:", g.length);
@@ -8923,7 +8925,7 @@ EagleCanvas.prototype.mirrorLayer = function (layerIdx) {
                             </div>
                             Depth of Milling Traces
                             <div class="input-group">
-                                <input class="form-control trace-depth" type="number" placeholder="Depth" value="-0.03" />
+                                <input class="form-control trace-depth" type="number" placeholder="Depth" value="-0.035" />
                                 <div class="input-group-addon">mm</div>
                             </div>
                             <p class="descriptive-text">If you use ChiliPeppr's Auto-Level, you should be able to achieve copper removal with -0.1mm depth on 2oz copper. Or refer to the following depths:
@@ -9421,7 +9423,7 @@ EagleCanvas.prototype.mirrorLayer = function (layerIdx) {
                         <div class="form-group eagle-soldermask-mode-millRegion hidden" style="padding-left:20px;margin-bottom:0">
                             <p style="margin-bottom:0;font-size:11px;">Clearance Height</p>
                             <div class="input-group">
-                                <input type="number" step="1" class="form-control eagle-soldermask-regen-onblur eagle-soldermask-input-clearance" value="2" placeholder="Enter clearance height">
+                                <input type="number" step="1" class="form-control eagle-soldermask-regen-onblur eagle-soldermask-input-clearance" value="1" placeholder="Enter clearance height">
                                 <div class="input-group-addon">mm</div>
                             </div>
                             <p style="margin-bottom:0;font-size:11px;">Depth of Cut</p>
@@ -9436,7 +9438,7 @@ EagleCanvas.prototype.mirrorLayer = function (layerIdx) {
                             </div>
                             <p style="margin-bottom:0;font-size:11px;">Spindle Speed</p>
                             <div class="input-group">
-                                <input type="number" step="100" class="form-control eagle-soldermask-regen-onblur eagle-soldermask-input-spindle" value="8000" placeholder="Enter spindle speed">
+                                <input type="number" step="100" class="form-control eagle-soldermask-regen-onblur eagle-soldermask-input-spindle" value="1" placeholder="Enter spindle speed">
                                 <div class="input-group-addon">rpm</div>
                             </div>
                         </div>

@@ -1673,17 +1673,22 @@ onAddGcode : function(addGcodeCallback, gcodeParts, eagleWidget, helpDesc){
         
         mirrorX: false,
         mirrorY: false,
+		userModifiedMirrors: false,
         //V5.1D20161229 - Added
         setupMirrorAxis: function() {
+			this.userModifiedMirrors = false;
             $("#com-chilipeppr-widget-eagle .mirrorAxisX").change(this.onChangeMirrorAxis.bind(this));
             $("#com-chilipeppr-widget-eagle .mirrorAxisY").change(this.onChangeMirrorAxis.bind(this));
             $('#com-chilipeppr-widget-eagle .mirrorAxisX').prop ("checked", false);
             $('#com-chilipeppr-widget-eagle .mirrorAxisY').prop ("checked", false);
         },
         //V5.1D20161229 - Added
-        onChangeMirrorAxis: function() {
+        onChangeMirrorAxis: function(e,wasCode) {
             this.mirrorX = $('#com-chilipeppr-widget-eagle .mirrorAxisX').prop ("checked");
             this.mirrorY = $('#com-chilipeppr-widget-eagle .mirrorAxisY').prop ("checked");
+			if (!wasCode) {
+				this.userModifiedMirrors = true;
+			}
             //this.clearEagleBrd();
             //this.draw3d();
         },
@@ -1793,6 +1798,24 @@ onAddGcode : function(addGcodeCallback, gcodeParts, eagleWidget, helpDesc){
             }*/
             var oldActiveLayer = this.activeLayer;
             if (selectedLayerInDropdown != oldActiveLayer) {
+				if (selectedLayerInDropdown == "Bottom") {
+					var hasMirror = this.mirrorX || this.mirrorY;
+					if (!hasMirror && !this.userModifiedMirrors) {
+						var mirrY$ = $('#com-chilipeppr-widget-eagle .mirrorAxisY');
+						mirrY$.prop("checked", true);
+						mirrY$.trigger("change", true); //Send it wasn't user that dirtied the controls
+					}
+				}
+				if (selectedLayerInDropdown == "Top") {
+					var hasMirror = this.mirrorX || this.mirrorY;
+					if (hasMirror && !this.userModifiedMirrors) {
+						var mirrY$ = $('#com-chilipeppr-widget-eagle .mirrorAxisY');
+						var mirrX$ = $('#com-chilipeppr-widget-eagle .mirrorAxisX');
+						mirrY$.prop("checked", false);
+						mirrX$.prop("checked", false);
+						mirrY$.trigger("change", true); //Send it wasn't user that dirtied the controls
+					}
+				}
                 this.activeLayer = selectedLayerInDropdown;
                 console.log("layer active now:  ", this.activeLayer);
                 //debugger;
@@ -2305,6 +2328,7 @@ onAddGcode : function(addGcodeCallback, gcodeParts, eagleWidget, helpDesc){
                 chilipeppr.publish("/com-chilipeppr-elem-flashmsg/flashmsg", "Opening Eagle BRD", "Parsing Eagle BRD file and generating signal paths.", 3000, true);
                 // reset main properties
                 this.activeLayer = 'Top';
+				this.userModifiedMirrors = false;
                 this.clearEagleBrd();
                 this.clear3dViewer();
                 // create board

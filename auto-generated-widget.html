@@ -964,8 +964,21 @@ onAddGcode : function(addGcodeCallback, gcodeParts, eagleWidget, helpDesc){
             
             // create new array of pads and smds
             var padsAndSmds = [];
-            padsAndSmds = padsAndSmds.concat(this.clipperPads.slice(0)); // clone
-            padsAndSmds = padsAndSmds.concat(this.clipperSmds.slice(0)); // clone
+			
+			if ($('.com-chilipeppr-widget-eagle-soldermask-usepads').is(":checked"))
+			{
+				padsAndSmds = padsAndSmds.concat(this.clipperPads.slice(0)); // clone
+			}
+            
+			if ($('.com-chilipeppr-widget-eagle-soldermask-usesmds').is(":checked"))
+			{
+				padsAndSmds = padsAndSmds.concat(this.clipperSmds.slice(0)); // clone
+			}
+			
+			if ($('.com-chilipeppr-widget-eagle-soldermask-usevias').is(":checked"))
+			{
+				padsAndSmds = padsAndSmds.concat(this.clipperVias.slice(0)); // clone
+			}
             
             // if invert, branch to alternate render method just to keep stuff clean
             // we probably should move the normal render to a method like this as well
@@ -9193,7 +9206,7 @@ EagleCanvas.prototype.mirrorLayer = function (layerIdx) {
                 
                 <div class="tab-pane xactive" id="eagle-soldermask">
                     <p>Use these tools to  
-                    to reveal or cut out pads/smds for soldering.</p>
+                    to reveal or cut out pads/smds/vias for soldering.</p>
                     
                     <!--<h2>Mask Reveal</h2>-->
                     
@@ -9209,6 +9222,40 @@ EagleCanvas.prototype.mirrorLayer = function (layerIdx) {
                     <!--    <button class="btn xbtn-xs btn-default com-chilipeppr-widget-eagle-soldermask-render">Render</button>-->
                     <!--</div>-->
                     
+					Parts to Reveal
+                    <div class="checkbox" style="margin-left:0px;margin-top:0; margin-bottom:0;">
+                        <label>
+                            <input type="checkbox" name="com-chilipeppr-widget-eagle-soldermask-usepads" class="com-chilipeppr-widget-eagle-soldermask-usepads eagle-soldermask-regen-onrender-click" checked /> 
+                            Pads
+                            <p style="margin-top:0px;margin-bottom:0px;font-size:11px;">
+                            Adds pad paths to Gcode.
+                            </p>
+                            </input>
+                            
+                        </label>
+                    </div>
+                    <div class="checkbox" style="margin-left:0px;margin-top:0; margin-bottom:0;">
+                        <label>
+                            <input type="checkbox" name="com-chilipeppr-widget-eagle-soldermask-usesmds" class="com-chilipeppr-widget-eagle-soldermask-usesmds eagle-soldermask-regen-onrender-click" checked /> 
+                            SMDs
+                            <p style="margin-top:0px;margin-bottom:0px;font-size:11px;">
+                            Adds surface mounted paths to Gcode.
+                            </p>
+                            </input>
+                            
+                        </label>
+                    </div>
+                    <div class="checkbox" style="margin-left:0px;margin-top:0; margin-bottom:0;">
+                        <label>
+                            <input type="checkbox" name="com-chilipeppr-widget-eagle-soldermask-usevias" class="com-chilipeppr-widget-eagle-soldermask-usevias eagle-soldermask-regen-onrender-click" checked /> 
+                            Vias
+                            <p style="margin-top:0px;margin-bottom:0px;font-size:11px;">
+                            Adds vai paths to Gcode.
+                            </p>
+                            </input>
+                            
+                        </label>
+                    </div>
                     Show Actual Laser / End Mill Path
                     <div class="radio">
                         <label>

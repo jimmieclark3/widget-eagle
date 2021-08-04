@@ -2570,12 +2570,24 @@ onAddGcode : function(addGcodeCallback, gcodeParts, eagleWidget, helpDesc){
             var g = '';
             var that = this;
 
-            if((! $('#com-chilipeppr-widget-eagle .drill-markholes').is(':checked')) ||
-                this.holesToDrill.length == 0)
+            if((! $('#com-chilipeppr-widget-eagle .drill-markholes').is(':checked')))
                return g;
+			var holeCnt = this.objCount(this.holesToDrill);
 
             // Drilling, first sort to drill diameter and change tool to first diameter
             g += "(------ MARK HOLES -------)\n";
+			if (holeCnt == 0)
+			{
+				g += "(------ No holes to drill ------)\n";
+				return g;
+			}
+			if(! $('#com-chilipeppr-widget-eagle .use-traces').is(':checked')) {
+			   g += "M5 (spindle off)\n";
+			   g += "T" + ++this.toolCount + " M6 (Drilling holes - diameter 0.1mm)\n";
+			   g += "(T" + this.toolCount + " D=0.1mm - PCB Drill Bit)\n";
+			   g += "M3 S" + this.spindleRPM + " (spindle on)\n";
+			   g += "F" + this.drillFeedrate + "\n"; 
+		    }
             for ( var diameter in this.sortObjByKey(this.holesToDrill) ){
                this.holesToDrill[diameter].forEach(function(dvector){
                      g += "G0 Z" + that.clearanceHeight + "\n";
@@ -2591,9 +2603,10 @@ onAddGcode : function(addGcodeCallback, gcodeParts, eagleWidget, helpDesc){
         exportGcodeDrillHoles:function(){
             var g = '';
             var that = this;
+			var holeCnt = this.objCount(this.holesToDrill);
             
             if((! $('#com-chilipeppr-widget-eagle .use-drilling').is(':checked')) ||
-                this.holesToDrill.length == 0)
+                holeCnt == 0)
                return g;
             g += "(------ DRILLING HOLES -------)\n";
             for ( var diameter in this.sortObjByKey(this.holesToDrill) ){
@@ -5337,6 +5350,18 @@ onAddGcode : function(addGcodeCallback, gcodeParts, eagleWidget, helpDesc){
           });
       
           return sorted_obj;
+        },
+        objCount: function (obj){
+          var keys = [];
+          var sorted_obj = {};
+      
+          for(var key in obj){
+              if(obj.hasOwnProperty(key)){
+                  keys.push(key);
+              }
+          }
+      
+		  return keys.length;
         },
 
         // THIS SECTION IS FOR WORKING ON THE DIMENSION OF THE BOARD

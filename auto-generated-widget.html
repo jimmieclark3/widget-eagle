@@ -8940,7 +8940,7 @@ EagleCanvas.prototype.mirrorLayer = function (layerIdx) {
                             <div class="panel eagle-advanced" style="margin-bottom:10px;">
                                 <div class="checkbox">
                                     <label>
-                                    <input type="checkbox" class="AvoidTraceBoardDimensions" checked /> Avoid Tracing Board Dimensions
+                                    <input type="checkbox" class="AvoidTraceBoardDimensions" /> Avoid Tracing Board Dimensions
                                     </label>
                                 </div>
                                 <p class="descriptive-text">Experimental - This feature will eliminate tracing any path(s) that match board dimensions. Hit Render button after changing this checkbox to see the results.</p>
@@ -9147,7 +9147,7 @@ EagleCanvas.prototype.mirrorLayer = function (layerIdx) {
                             
                             Tab Height
                             <div class="input-group">
-                                <input class="form-control tab-height" type="number" placeholder="Tab Height" value="0.8" min="0.5" step="0.1"/>
+                                <input class="form-control tab-height" type="number" placeholder="Tab Height" value="1" min="0.5" step="0.1"/>
                                 <div class="input-group-addon">mm</div>
                             </div>
                             <p class="descriptive-text">Tab height from bottom of board, value between 0.5mm to 1.7mm (board thinkness)</p>
@@ -9333,7 +9333,7 @@ EagleCanvas.prototype.mirrorLayer = function (layerIdx) {
                     </p>
                     <div class="alert alert-danger hidden eagle-soldermask-alert" style="margin-bottom:5px;">Some of your pads/smds could not get a path rendered because your laser point or end mill diameter is too wide.</div>
                     <div class="input-group">
-                        <input class="form-control eagle-soldermask-regen-onrender com-chilipeppr-widget-soldermask-laser-width" type="number" placeholder="Width of laser point" value="0.1" step="0.1"  />
+                        <input class="form-control eagle-soldermask-regen-onrender com-chilipeppr-widget-soldermask-laser-width" type="number" placeholder="Width of laser point" value="0.2" step="0.1"  />
                         <div class="input-group-addon">mm</div>
                     </div>
                     
@@ -9426,14 +9426,14 @@ EagleCanvas.prototype.mirrorLayer = function (layerIdx) {
                                 <input type="number" step="1" class="form-control eagle-soldermask-regen-onblur eagle-soldermask-input-clearance" value="1" placeholder="Enter clearance height">
                                 <div class="input-group-addon">mm</div>
                             </div>
-                            <p style="margin-bottom:0;font-size:11px;">Depth of Cut</p>
+                            <p style="margin-bottom:0;font-size:11px;">Depth of Cut ***If not using a spring bit, use 0 with autolevel</p>
                             <div class="input-group">
-                                <input type="number" step="1" class="form-control eagle-soldermask-regen-onblur eagle-soldermask-input-depthcut" value="0" placeholder="Enter depth of cut">
+                                <input type="number" step="1" class="form-control eagle-soldermask-regen-onblur eagle-soldermask-input-depthcut" value="-0.3" placeholder="Enter depth of cut">
                                 <div class="input-group-addon">mm</div>
                             </div>
                             <p style="margin-bottom:0;font-size:11px;">Feedrate of Plunge</p>
                             <div class="input-group">
-                                <input type="number" step="10" class="form-control eagle-soldermask-regen-onblur eagle-soldermask-input-feedrateplunge" value="30" placeholder="Enter feedrate">
+                                <input type="number" step="10" class="form-control eagle-soldermask-regen-onblur eagle-soldermask-input-feedrateplunge" value="70" placeholder="Enter feedrate">
                                 <div class="input-group-addon">mm/min</div>
                             </div>
                             <p style="margin-bottom:0;font-size:11px;">Spindle Speed</p>
@@ -9448,7 +9448,7 @@ EagleCanvas.prototype.mirrorLayer = function (layerIdx) {
                         Feedrate of Laser / Mill
                     </p>
                     <div class="input-group">
-                        <input type="number" step="10" class="form-control eagle-soldermask-regen-onblur eagle-soldermask-input-feedrate" value="30" placeholder="Enter feedrate">
+                        <input type="number" step="10" class="form-control eagle-soldermask-regen-onblur eagle-soldermask-input-feedrate" value="80" placeholder="Enter feedrate">
                         <div class="input-group-addon">mm/min</div>
                     </div>
                     <!--<p style="margin-bottom:0;font-size:11px;">Clearance Height</p>-->

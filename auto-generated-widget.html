@@ -992,7 +992,7 @@ onAddGcode : function(addGcodeCallback, gcodeParts, eagleWidget, helpDesc){
             padsAndSmds.forEach(function(pad) {
                 console.log("pad:", pad);
                 
-                this.solderMaskGcodePath.push("move to pad/smd start");
+                this.solderMaskGcodePath.push("move to pad/smd/via/poly start");
                 
                 var deflateBy = w * (1 - overlapPct / 100) * -1;
                 
@@ -1073,6 +1073,15 @@ onAddGcode : function(addGcodeCallback, gcodeParts, eagleWidget, helpDesc){
                         // push this line onto gcode array
                         this.solderMaskGcodePath.push(deflatePath);
  
+                    } else {
+                        // no path left, so done deflating
+                        isStillAPath = false;
+                        
+                        console.log("done deflating. lastDeflatePath:", lastDeflatePath);
+                        
+                        // however, we need to draw a line to the center to make sure we laser/cut
+                        // all of the pad/smd
+                        
                     }
                     
                     lastDeflatePath = deflatePath;

@@ -7300,6 +7300,11 @@ onAddGcode : function(addGcodeCallback, gcodeParts, eagleWidget, helpDesc){
                     
                 }, this);
                 // draw temp union of padgroup
+				if (temparr.length > 0) {
+					//debugger;
+					var sol_paths = this.getUnionOfClipperPaths(temparr);
+					temparr = sol_paths;
+				}
                 temparr.forEach(function (d) {
                     this.clipperPads.push(d);
                 }, this);

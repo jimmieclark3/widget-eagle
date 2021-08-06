@@ -1034,6 +1034,11 @@ onAddGcode : function(addGcodeCallback, gcodeParts, eagleWidget, helpDesc){
                     // then keep deflating until we have nothing left
                     deflatePath = this.getInflatePath(deflatePath, deflateBy);
                     
+					//Clear the middles via the size of the structure, instead of a line
+					if (deflatePath.length == 0 && lastDeflatePath != null) {
+						deflatePath = this.getInflatePath(lastDeflatePath, deflateBy / 1.5);
+					}
+					
                     console.log("deflatePath:", deflatePath);
                     
                     // check if 1st time thru we get no path. if so, show alert
@@ -1080,41 +1085,7 @@ onAddGcode : function(addGcodeCallback, gcodeParts, eagleWidget, helpDesc){
                         
                         // push this line onto gcode array
                         this.solderMaskGcodePath.push(deflatePath);
-
-                    } else {
-                        // no path left, so done deflating
-                        isStillAPath = false;
-                        
-                        console.log("done deflating. lastDeflatePath:", lastDeflatePath);
-                        
-                        // however, we need to draw a line to the center to make sure we laser/cut
-                        // all of the pad/smd
-                        
-                        // make sure there is a lastDeflatePath
-                        if (lastDeflatePath != null) {
-
-                            // get middle of pad
-                            // do this by creating a three.js mesh, then using bounding box
-                            var mesh = this.getMeshLineFromClipperPath({clipperPath:lastDeflatePath});
-                            console.log("mesh of lastDeflatePath. mesh:", mesh);
-                            
-                            // get center
-                            var centroid = this.getCentroid(mesh.children[1].children[0]);
-    
-                            // get point of last deflatePath and draw line to center
-                            console.log("centroid:", centroid, "lastDeflatePath:", lastDeflatePath);
-                            //lastDeflatePath[lastDeflatePath.length - 1];
-                            var lastPath = lastDeflatePath[0];
-                            var lastPt = lastPath[0]; // lastPath[lastPath.length - 1];
-    
-                            var clipperLine = [[{X:lastPt.X, Y:lastPt.Y}, {X:centroid.x, Y:centroid.y}]];
-                            
-                            this.drawPathAsLineOrMesh(clipperLine, w, isShowAsMesh, this.solderMaskGrp);
-                            
-                            // push this line onto gcode array
-                            this.solderMaskGcodePath.push(clipperLine);
-                        }
-                        
+ 
                     }
                     
                     lastDeflatePath = deflatePath;

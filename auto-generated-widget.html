@@ -138,6 +138,9 @@
 .nav-tabs.nav-tabs-2ndpos li.active a {
     border-style: dashed;
 }
+.com-chilipeppr-widget-eagle-soldermask-cleardimensions-width {
+	//margin-left: 41px;
+}
     </style>
 
     <script type='text/javascript'>
@@ -965,6 +968,27 @@ onAddGcode : function(addGcodeCallback, gcodeParts, eagleWidget, helpDesc){
             // create new array of pads and smds
             var padsAndSmds = [];
 			
+			var clearDimensions = $('.com-chilipeppr-widget-eagle-soldermask-cleardimensions').is(":checked");
+			
+			var dimDecrease = null;
+			
+			if (clearDimensions)
+			{
+				dimDecrease = $('.com-chilipeppr-widget-eagle-soldermask-cleardimensions-width').val();
+				
+				if (isInvert) {
+					var clipperDimension = this.clipperDimension.slice(0);
+					clipperDimension = [clipperDimension];
+					
+					var dimObj = [];
+					var insideDim = this.getInflatePath(clipperDimension, -dimDecrease);
+					
+					var resDim = this.getDiffOfClipperPaths(clipperDimension, insideDim);
+					//var resDim = this.getXorOfClipperPaths(clipperDimension, insideDim);
+					
+					padsAndSmds = padsAndSmds.concat(resDim);
+				}
+			}
 			if ($('.com-chilipeppr-widget-eagle-soldermask-usepads').is(":checked"))
 			{
 				padsAndSmds = padsAndSmds.concat(this.clipperPads.slice(0)); // clone
@@ -1007,99 +1031,7 @@ onAddGcode : function(addGcodeCallback, gcodeParts, eagleWidget, helpDesc){
                 
                 this.solderMaskGcodePath.push("move to pad/smd/via/poly start");
                 
-                var deflateBy = w * (1 - overlapPct / 100) * -1;
-                
-                if (isOutlineOnly) {
-                    // we change the deflateBy relevant to their settings
-                    if (outlineOut) deflateBy = (w / 2) * 1;
-                    if (outlineOn) deflateBy = 0.001;
-                    if (outlineIn) deflateBy = (w / 2) * -1;
-                }
-                
-                var deflatePath = [pad.slice(0)];
-                
-                // deflate until gone
-                var isStillAPath = true;
-                
-                // store last path so we can reference it on each deflate for a path from it's
-                // last point to our start point
-                var lastDeflatePath = null;
-                
-                // count times thru while loop so on 2nd loop we can trick
-                // if the user just wants an outline
-                var whileCtr = 0;
-                
-                while(isStillAPath) {
-                    // use deflate mechanism. deflate by width of laser/end mill and use that as path
-                    // then keep deflating until we have nothing left
-                    deflatePath = this.getInflatePath(deflatePath, deflateBy);
-                    
-					//Clear the middles via the size of the structure, instead of a line
-					if (deflatePath.length == 0 && lastDeflatePath != null) {
-						deflatePath = this.getInflatePath(lastDeflatePath, deflateBy / 1.5);
-					}
-					
-                    console.log("deflatePath:", deflatePath);
-                    
-                    // check if 1st time thru we get no path. if so, show alert
-                    if (whileCtr == 0 && deflatePath.length == 0) {
-                        $('.eagle-soldermask-alert').removeClass("hidden");
-                    }
-                    
-                    whileCtr++;
-                    
-                    // if outline only, we want to come into this loop once
-                    // and then trick it to think we're done
-                    if (isOutlineOnly && whileCtr == 2) {
-                        console.log("isOutlineOnly so forcing that 2nd deflatePath is empty to trick that we are done");
-                        isStillAPath = false;
-                        // lastDeflatePath = null;
-                        break;  // jump out of while loop
-                    }
-                    
-                    if (deflatePath.length > 0) {
-                        
-                        // there is still a path
-                        isStillAPath = true;
-                        
-                        // since we have a path here, see if we had a lastDeflatePath, cuz if
-                        // we did we should draw a line from it to our start to mimic the path
-                        // the laser / end mill will take to get into this inner path.
-                        if (lastDeflatePath != null) {
-                            // yes, we had a last path
-                            var lastPath = lastDeflatePath[0];
-                            var lastPt = lastPath[0]; // lastPath[lastPath.length - 1];
-                            var newPath = deflatePath[0];
-                            var newPt = newPath[0];
-    
-                            var clipperLine = [[lastPt, newPt]];
-                            this.drawPathAsLineOrMesh(clipperLine, w, isShowAsMesh, this.solderMaskGrp);
-                            
-                            // push this line onto gcode array
-                            this.solderMaskGcodePath.push(clipperLine);
-
-                        }
-                        
-                        // draw the actual main path we're working on here
-                        this.drawPathAsLineOrMesh(deflatePath, w, isShowAsMesh, this.solderMaskGrp);
-                        
-                        // push this line onto gcode array
-                        this.solderMaskGcodePath.push(deflatePath);
- 
-                    } else {
-                        // no path left, so done deflating
-                        isStillAPath = false;
-                        
-                        console.log("done deflating. lastDeflatePath:", lastDeflatePath);
-                        
-                        // however, we need to draw a line to the center to make sure we laser/cut
-                        // all of the pad/smd
-                        
-                    }
-                    
-                    lastDeflatePath = deflatePath;
-                }
-                
+				this.deflateObject(pad);
                 
             }, this);
 
@@ -1114,6 +1046,15 @@ onAddGcode : function(addGcodeCallback, gcodeParts, eagleWidget, helpDesc){
                 // push this line onto gcode array
                 this.solderMaskGcodePath.push([this.clipperDimension]);
             }
+			
+			if (clearDimensions && !isOutlineOnly) {
+				
+                //this.solderMaskGcodePath.push("clearing dimensions start");
+                
+				this.deflateObject(this.clipperDimension, dimDecrease);
+				
+                //this.solderMaskGcodePath.push("clearing dimensions end");
+			}
             
             // ok, now add our group
             this.sceneAdd(this.solderMaskGrp);
@@ -1131,6 +1072,126 @@ onAddGcode : function(addGcodeCallback, gcodeParts, eagleWidget, helpDesc){
             // });
         
         },
+		
+		deflateObject: function (obj, totalDeflateBy) 
+		{
+            var isOutlineOnly = false;
+            isOutlineOnly = $('.com-chilipeppr-widget-eagle-soldermask-outline').is(":checked");
+			
+            // see if user wants to see actual path
+            var isShowAsMesh = true;
+            isShowAsMesh = $('.com-chilipeppr-widget-eagle-soldermask-showAsMesh').is(":checked");
+			
+            // get user width of laser or end mill
+            var w = 0.1; // mm
+            w = $('.com-chilipeppr-widget-soldermask-laser-width').val();
+            
+            // get user overlap of path
+            var overlapPct = 20; // mm
+            overlapPct = $('.com-chilipeppr-widget-soldermask-laser-overlap').val();
+		
+			var deflateBy = w * (1 - overlapPct / 100) * -1;
+
+			if (isOutlineOnly) {
+				// we change the deflateBy relevant to their settings
+				if (outlineOut) deflateBy = (w / 2) * 1;
+				if (outlineOn) deflateBy = 0.001;
+				if (outlineIn) deflateBy = (w / 2) * -1;
+			}
+
+			var deflatePath = [obj.slice(0)];
+
+			// deflate until gone
+			var isStillAPath = true;
+
+			// store last path so we can reference it on each deflate for a path from it's
+			// last point to our start point
+			var lastDeflatePath = null;
+
+			// count times thru while loop so on 2nd loop we can trick
+			// if the user just wants an outline
+			var whileCtr = 0;
+			
+			var total = 0;
+
+			while(isStillAPath) {
+				// use deflate mechanism. deflate by width of laser/end mill and use that as path
+				// then keep deflating until we have nothing left
+				deflatePath = this.getInflatePath(deflatePath, deflateBy);
+				
+				total += Math.abs(deflateBy);
+				if (totalDeflateBy != null && total > totalDeflateBy) 
+				{
+					break;
+				}
+				
+				//Clear the middles via the size of the structure, instead of a line
+				if (deflatePath.length == 0 && lastDeflatePath != null) {
+					deflatePath = this.getInflatePath(lastDeflatePath, deflateBy / 1.5);
+				}
+				
+				console.log("deflatePath:", deflatePath);
+				
+				// check if 1st time thru we get no path. if so, show alert
+				if (whileCtr == 0 && deflatePath.length == 0) {
+					$('.eagle-soldermask-alert').removeClass("hidden");
+				}
+				
+				whileCtr++;
+				
+				// if outline only, we want to come into this loop once
+				// and then trick it to think we're done
+				if (isOutlineOnly && whileCtr == 2) {
+					console.log("isOutlineOnly so forcing that 2nd deflatePath is empty to trick that we are done");
+					isStillAPath = false;
+					// lastDeflatePath = null;
+					break;  // jump out of while loop
+				}
+				
+				if (deflatePath.length > 0) {
+					
+					// there is still a path
+					isStillAPath = true;
+					
+					// since we have a path here, see if we had a lastDeflatePath, cuz if
+					// we did we should draw a line from it to our start to mimic the path
+					// the laser / end mill will take to get into this inner path.
+					if (lastDeflatePath != null) {
+						// yes, we had a last path
+						var lastPath = lastDeflatePath[0];
+						var lastPt = lastPath[0]; // lastPath[lastPath.length - 1];
+						var newPath = deflatePath[0];
+						var newPt = newPath[0];
+
+						var clipperLine = [[lastPt, newPt]];
+						this.drawPathAsLineOrMesh(clipperLine, w, isShowAsMesh, this.solderMaskGrp);
+						
+						// push this line onto gcode array
+						this.solderMaskGcodePath.push(clipperLine);
+
+					}
+					
+					// draw the actual main path we're working on here
+					this.drawPathAsLineOrMesh(deflatePath, w, isShowAsMesh, this.solderMaskGrp);
+					
+					// push this line onto gcode array
+					this.solderMaskGcodePath.push(deflatePath);
+
+				} else {
+					// no path left, so done deflating
+					isStillAPath = false;
+					
+					console.log("done deflating. lastDeflatePath:", lastDeflatePath);
+					
+					// however, we need to draw a line to the center to make sure we laser/cut
+					// all of the pad/smd
+					
+				}
+				
+				lastDeflatePath = deflatePath;
+			}
+		},
+		
         /**
          * This method renders an inverse path for lasering/milling. This can be used
          * to expose a solder mask with UV laser light outside of the pads. Then the
@@ -1466,6 +1527,7 @@ onAddGcode : function(addGcodeCallback, gcodeParts, eagleWidget, helpDesc){
                         } else {
                             // we are milling normal path, and i don't think we should
                             // get multiple paths so show error in case i missed something
+							debugger;
                             console.error("we have more than one path, should not happen. path:", path);
                         }
                     }
@@ -9290,6 +9352,22 @@ EagleCanvas.prototype.mirrorLayer = function (layerIdx) {
                             
                         </label>
                     </div>
+                    <div class="checkbox" style="margin-left:0px;margin-top:0; margin-bottom:0;">
+                        <label>
+                            <input type="checkbox" name="com-chilipeppr-widget-eagle-soldermask-cleardimensions" class="com-chilipeppr-widget-eagle-soldermask-cleardimensions eagle-soldermask-regen-onrender-click" checked /> 
+                            Dimensions
+                            <p style="margin-top:0px;margin-bottom:0px;font-size:11px;">
+                            Adds dimension clearing around the board
+                            </p>
+                            </input>
+                            
+                        </label>
+						
+						<div class="input-group">
+							<input type="number" min="0" step="1" class="form-control com-chilipeppr-widget-eagle-soldermask-cleardimensions-width eagle-soldermask-input eagle-soldermask-regen-onrender" value="1" placeholder="Enter dimensions padding width">
+							<div class="input-group-addon">mm</div>
+						</div>
+                    </div>
                     Show Actual Laser / End Mill Path
                     <div class="radio">
                         <label>
@@ -9362,7 +9440,7 @@ EagleCanvas.prototype.mirrorLayer = function (layerIdx) {
                     </div>
                     </div>
                     
-                    <div class="hidden">
+                    <div> <!--  class="hidden" -->
                     Invert
                     <p style="margin-top:3px;margin-bottom:4px;font-size:11px;">
                         This lets you invert your laser/mill path so you are effecting

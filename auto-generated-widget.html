@@ -759,7 +759,7 @@ onAddGcode : function(addGcodeCallback, gcodeParts, eagleWidget, helpDesc){
             g += "F" + drillFeedrate + "\n";
             holes.forEach(function(hole){
                 g += "G0 Z" + clearanceHeight + "\n";
-                g += "G0 X" + hole.x + " Y" + hole.y   + "\n";
+                g += "G0 X" + hole.x + " Y" + hole.y   + "\n";	
                 g += "G0 Z" + clearanceHeight/10 + "\n";
                 g += "G1 Z" + drillDepth  + "\n";
                 g += "G1 Z" + clearanceHeight/10 + "\n";
@@ -1049,6 +1049,8 @@ onAddGcode : function(addGcodeCallback, gcodeParts, eagleWidget, helpDesc){
 			
 			if (clearDimensions && !isOutlineOnly) {
 				
+                this.solderMaskGcodePath.push("move to dimensions start");
+				
                 //this.solderMaskGcodePath.push("clearing dimensions start");
                 
 				this.deflateObject(this.clipperDimension, dimDecrease);
@@ -1114,6 +1116,8 @@ onAddGcode : function(addGcodeCallback, gcodeParts, eagleWidget, helpDesc){
 			
 			var total = 0;
 
+			var isFirst = true;
+
 			while(isStillAPath) {
 				// use deflate mechanism. deflate by width of laser/end mill and use that as path
 				// then keep deflating until we have nothing left
@@ -1148,47 +1152,55 @@ onAddGcode : function(addGcodeCallback, gcodeParts, eagleWidget, helpDesc){
 					break;  // jump out of while loop
 				}
 				
-				if (deflatePath.length > 0) {
-					
-					// there is still a path
-					isStillAPath = true;
-					
-					// since we have a path here, see if we had a lastDeflatePath, cuz if
-					// we did we should draw a line from it to our start to mimic the path
-					// the laser / end mill will take to get into this inner path.
-					if (lastDeflatePath != null) {
-						// yes, we had a last path
-						var lastPath = lastDeflatePath[0];
-						var lastPt = lastPath[0]; // lastPath[lastPath.length - 1];
-						var newPath = deflatePath[0];
-						var newPt = newPath[0];
-
-						var clipperLine = [[lastPt, newPt]];
-						this.drawPathAsLineOrMesh(clipperLine, w, isShowAsMesh, this.solderMaskGrp);
-						
-						// push this line onto gcode array
-						this.solderMaskGcodePath.push(clipperLine);
-
-					}
-					
-					// draw the actual main path we're working on here
-					this.drawPathAsLineOrMesh(deflatePath, w, isShowAsMesh, this.solderMaskGrp);
-					
-					// push this line onto gcode array
-					this.solderMaskGcodePath.push(deflatePath);
-
-				} else {
-					// no path left, so done deflating
-					isStillAPath = false;
-					
-					console.log("done deflating. lastDeflatePath:", lastDeflatePath);
-					
-					// however, we need to draw a line to the center to make sure we laser/cut
-					// all of the pad/smd
-					
+				var cnt = 1;
+				if (isFirst) {
+					cnt = 2;
 				}
 				
-				lastDeflatePath = deflatePath;
+				var x;
+				for (x = 0;x < cnt;x++) {
+					if (deflatePath.length > 0) {
+					
+						// there is still a path
+						isStillAPath = true;
+						
+						// since we have a path here, see if we had a lastDeflatePath, cuz if
+						// we did we should draw a line from it to our start to mimic the path
+						// the laser / end mill will take to get into this inner path.
+						if (lastDeflatePath != null) {
+							// yes, we had a last path
+							var lastPath = lastDeflatePath[0];
+							var lastPt = lastPath[0]; // lastPath[lastPath.length - 1];
+							var newPath = deflatePath[0];
+							var newPt = newPath[0];
+
+							var clipperLine = [[lastPt, newPt]];
+							this.drawPathAsLineOrMesh(clipperLine, w, isShowAsMesh, this.solderMaskGrp);
+							
+							// push this line onto gcode array
+							this.solderMaskGcodePath.push(clipperLine);
+
+						}
+						
+						// draw the actual main path we're working on here
+						this.drawPathAsLineOrMesh(deflatePath, w, isShowAsMesh, this.solderMaskGrp);
+						
+						// push this line onto gcode array
+						this.solderMaskGcodePath.push(deflatePath);
+
+					} else {
+						// no path left, so done deflating
+						isStillAPath = false;
+						
+						console.log("done deflating. lastDeflatePath:", lastDeflatePath);
+						
+						// however, we need to draw a line to the center to make sure we laser/cut
+						// all of the pad/smd
+						x = cnt; //break out first time
+					}
+					
+					lastDeflatePath = deflatePath;
+				}
 			}
 		},
 		
@@ -1475,6 +1487,7 @@ onAddGcode : function(addGcodeCallback, gcodeParts, eagleWidget, helpDesc){
             var padCtr = 0;
             
             for (var i = 0; i < this.solderMaskGcodePath.length; i++) {
+				
                 var path = this.solderMaskGcodePath[i];
                 
                 console.log("path:", path);
@@ -1948,6 +1961,7 @@ onAddGcode : function(addGcodeCallback, gcodeParts, eagleWidget, helpDesc){
             el.find('.trace-depth').change(function(evt) {
                 console.log("evt:", evt);
                 that.depthOfSignalMilling = evt.currentTarget.valueAsNumber;
+				//$('.drill-markholes-depth').prop("placeholder", this.depthOfSignalMilling);
                 console.log("that.depthOfSignalMilling:", that.depthOfSignalMilling);
             });
             el.find('.trace-fr').change(function(evt) {
@@ -1972,6 +1986,18 @@ onAddGcode : function(addGcodeCallback, gcodeParts, eagleWidget, helpDesc){
                     elem.prop('disabled', true);
                     elem.val(that.depthOfDimensions);
                     that.drillDepth = elem.val();
+                }
+            });
+            el.find('.drill-markholes').change(function(evt) {
+                console.log("evt:", evt);
+                var elem = $('#com-chilipeppr-widget-eagle .drill-markholes-depth');
+                if(elem.prop('disabled')){
+                    elem.prop('disabled', false);
+                    elem.val(that.drillMarkHolesDepth);
+                }else{
+                    elem.prop('disabled', true);
+                    //elem.val(that.depthOfDimensions);
+                    that.drillMarkHolesDepth = elem.val();
                 }
             });
             el.find('.drill-feedrate').change(function(evt) {
@@ -2638,6 +2664,12 @@ onAddGcode : function(addGcodeCallback, gcodeParts, eagleWidget, helpDesc){
 
             if((! $('#com-chilipeppr-widget-eagle .drill-markholes').is(':checked')))
                return g;
+			   
+			var holeDepth = $('#com-chilipeppr-widget-eagle .drill-markholes-depth').val();
+			if (holeDepth == null || holeDepth == "") {
+				holeDepth = that.depthOfSignalMilling * 2;
+			}
+			   
 			var holeCnt = this.objCount(this.holesToDrill);
 
             // Drilling, first sort to drill diameter and change tool to first diameter
@@ -2652,14 +2684,15 @@ onAddGcode : function(addGcodeCallback, gcodeParts, eagleWidget, helpDesc){
 			   g += "T" + ++this.toolCount + " M6 (Drilling holes - diameter 0.1mm)\n";
 			   g += "(T" + this.toolCount + " D=0.1mm - PCB Drill Bit)\n";
 			   g += "M3 S" + this.spindleRPM + " (spindle on)\n";
-			   g += "F" + this.drillFeedrate + "\n"; 
 		    }
+			
             for ( var diameter in this.sortObjByKey(this.holesToDrill) ){
                this.holesToDrill[diameter].forEach(function(dvector){
+					 g += "F" + that.feedRateSignals + "\n"; 
                      g += "G0 Z" + that.clearanceHeight + "\n";
                      g += "G0 X" + dvector.X + " Y" + dvector.Y   + "\n";
                      g += "G0 Z0.1\n";
-                     g += "G1 Z" + that.depthOfSignalMilling  + "\n";
+                     g += "G1 Z" + holeDepth + " F" + that.feedRatePlunge + "\n";
                 });
                 g += "G0 Z" + that.clearanceHeight + "\n";
             }
@@ -2674,12 +2707,16 @@ onAddGcode : function(addGcodeCallback, gcodeParts, eagleWidget, helpDesc){
             if((! $('#com-chilipeppr-widget-eagle .use-drilling').is(':checked')) ||
                 holeCnt == 0)
                return g;
+			   
+			   
             g += "(------ DRILLING HOLES -------)\n";
             for ( var diameter in this.sortObjByKey(this.holesToDrill) ){
                g += "M5 (spindle off)\n";
                //g += "T" + this.toolCount++ + " M6 (set tool to drill with diameter " + diameter + "mm)\n";
                g += "T" + ++this.toolCount + " M6 (Drilling holes - diameter " + diameter + "mm)\n";
                g += "(T" + this.toolCount + " D=" + diameter + "mm - PCB Drill Bit)\n";
+				g += "G21 (mm)\n";
+				g += "G90 (abs mode)\n";
                g += "M3 S" + this.spindleRPM + " (spindle on)\n";
                g += "F" + this.drillFeedrate + "\n"; 
                this.holesToDrill[diameter].forEach(function(dvector){
@@ -2703,7 +2740,8 @@ onAddGcode : function(addGcodeCallback, gcodeParts, eagleWidget, helpDesc){
             if((! $('#com-chilipeppr-widget-eagle .use-drilling').is(':checked')) ||
                 this.holesToMill.length == 0)
                return g;
-            g += "(------ MILLING HOLES -------)\n";
+			   
+			g += "(------ MILLING HOLES -------)\n";
             g += "M5 (spindle off)\n";
             g += "T" + ++this.toolCount + " M6 (Milling holes/board dimensions)\n";
             g += "(T" + this.toolCount + " D=" + diaOfEndmill + "mm - PCB End Mill)\n";
@@ -2714,7 +2752,7 @@ onAddGcode : function(addGcodeCallback, gcodeParts, eagleWidget, helpDesc){
                 var radius = hole.D/2;
                 var gdiameter = radius-(that.millDiameter/2); // inside milling 
                 var stepDownPasses = Math.round(that.depthOfDimensions/that.stepDownDimensions + .5);
-                g += '(generate hole at x:' + hole.X + ' y:' + hole.Y + ' with dia:'+ hole.D +' in ' + stepDownPasses + ' passes)' + "\n";
+                g += '(milling generate hole at x:' + hole.X + ' y:' + hole.Y + ' with dia:'+ hole.D +' in ' + stepDownPasses + ' passes)' + "\n";
                 g += "F" + that.feedRateDimensions + "\n";
                 g += "G0 Z" + that.clearanceHeight + "\n";
                 g += "G0 X" + that.round(hole.X - gdiameter) + " Y" + that.round(hole.Y) + "\n";
@@ -2723,8 +2761,9 @@ onAddGcode : function(addGcodeCallback, gcodeParts, eagleWidget, helpDesc){
                     if(z < that.depthOfDimensions)
                         z = that.depthOfDimensions;
                     g += "G1 Z" + z.toFixed(4) + "\n"; //V5.2QUICKFIX
-                    g += (dir==2)?"G2 I":"G3 I";
-                    g += gdiameter.toFixed(4) + "\n";
+                    g += (dir==2)?"G2":"G3";
+					g += " X" + that.round(hole.X - gdiameter) + " Y" + that.round(hole.Y);
+					g += " I" + gdiameter.toFixed(4) + "\n";
                 }
                 g += "G0 Z" + that.clearanceHeight + "\n";
             });
@@ -9104,6 +9143,11 @@ EagleCanvas.prototype.mirrorLayer = function (layerIdx) {
                             </div>
                             <p class="descriptive-text" style="padding-top:0; margin-top:-8px;">This will mark holes for drill, which is a slight touch of the top surface to create an indent. The first endmill (V-Bit or other) will touch the middle of a hole to center the mill, to prevent "dancing drill" effect.</p>
                             </div>
+                            <div class="input-group">
+                                <input class="form-control drill-markholes-depth" type="number" placeholder="Depth (default is Trace Depth * 2)" disabled />
+                                <div class="input-group-addon">mm</div>
+                            </div>
+							<div style="margin-bottom: 20px;"/>
                         
                             Depth for Drilling Holes
                             <div class="checkbox">
@@ -9592,7 +9636,7 @@ EagleCanvas.prototype.mirrorLayer = function (layerIdx) {
                             </div>
                             <p style="margin-bottom:0;font-size:11px;">Feedrate of Plunge</p>
                             <div class="input-group">
-                                <input type="number" step="10" class="form-control eagle-soldermask-regen-onblur eagle-soldermask-input-feedrateplunge" value="70" placeholder="Enter feedrate">
+                                <input type="number" step="10" class="form-control eagle-soldermask-regen-onblur eagle-soldermask-input-feedrateplunge" value="100" placeholder="Enter feedrate">
                                 <div class="input-group-addon">mm/min</div>
                             </div>
                             <p style="margin-bottom:0;font-size:11px;">Spindle Speed</p>
@@ -9607,7 +9651,7 @@ EagleCanvas.prototype.mirrorLayer = function (layerIdx) {
                         Feedrate of Laser / Mill
                     </p>
                     <div class="input-group">
-                        <input type="number" step="10" class="form-control eagle-soldermask-regen-onblur eagle-soldermask-input-feedrate" value="80" placeholder="Enter feedrate">
+                        <input type="number" step="10" class="form-control eagle-soldermask-regen-onblur eagle-soldermask-input-feedrate" value="160" placeholder="Enter feedrate">
                         <div class="input-group-addon">mm/min</div>
                     </div>
                     <!--<p style="margin-bottom:0;font-size:11px;">Clearance Height</p>-->
